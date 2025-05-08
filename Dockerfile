@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN groupadd -r simplex && useradd -r -g simplex simplex
-RUN echo 'simplex:alext' | chpasswd
+RUN echo 'simplex:........' | chpasswd
 
 RUN mkdir app
 COPY ./app/ ./app/
