@@ -2,7 +2,7 @@ OPZ_EXEC := opz
 
 BUILD_DIR := ./build
 SRC_DIR := ./src
-INCLUDE_PATH := -I/Users/atretyakov/Apps/simplex/include
+INCLUDE_PATH := -I$(shell pwd)/include
 
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 

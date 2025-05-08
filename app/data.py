@@ -1,6 +1,7 @@
-import os, sys
+import os, time
 import struct
 from collections import namedtuple
+import schedule
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -21,18 +22,17 @@ data_dir = current_dir + '/data/data.bin'
 #                             0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,
 #                             0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,
 #                             0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1)
-vars_number = 9
-constraints_number = 6
-inequalities_number = 6
-inequalities_type = {"neg", "neg", "neg", "pos", "pos", "pos"}
-demand = (5,30,13,8,14,1000)
-costs = (90,70,85,1000, 20,35,30,1000)
-constraints_coefficients = (1,1,1,0,0,0,0,0,0,
-                            0,0,0,1,1,1,0,0,0,
-                            0,0,0,0,0,0,1,1,1,
-                            1,0,0,1,0,0,1,0,0,
-                            0,1,0,0,1,0,0,1,0,
-                            0,0,1,0,0,1,0,0,1)
+vars_number = 6
+constraints_number = 5
+inequalities_number = 5
+inequalities_type = {"neg", "neg", "pos", "pos", "pos"}
+demand = (5,30,13,8,5)
+costs = (90,70,85,20,35,30)
+constraints_coefficients = (1,1,1,0,0,0,
+                            0,0,0,1,1,1,
+                            1,0,0,1,0,0,
+                            0,1,0,0,1,0,
+                            0,0,1,0,0,1)
 
 
 Data = namedtuple('Data', ['vars_number', 'constraints_number',
@@ -58,6 +58,13 @@ def main(data):
     
     print("Unpacked data:", unpacked_data)
 
+def job():
+    print("keep running!")
+
 
 if __name__ == "__main__":
     main(data)
+    schedule.every(600).seconds.do(job)
+    while True:
+        schedule.run_pending()
+        time.sleep(5)

@@ -79,7 +79,8 @@ void readData(const char* filename, vector<float> &A, vector<float> &B, vector<f
         
         inputFile.close();
         
-        for(int i = 0; i < B.size(); i++)
+        int bSize = B.size(); 
+        for(int i = 0; i < bSize; i++)
         {
             cout << " " << B[i];
         }
@@ -113,20 +114,23 @@ void print(int &rows, int &cols, vector< vector<float> > &A, vector<float> &B, v
     cout << "" << endl;
 
     cout << "basis idxs:  " << endl;
-    for (int i = 0; i < basicVarsIdxs.size(); i++)
+    int bVSize = basicVarsIdxs.size();
+    for (int i = 0; i < bVSize; i++)
     {
         cout << basicVarsIdxs[i] << endl; 
     }
 
     cout << "C array:  " << endl;
-    for (int i = 0; i < C.size(); i++)
+    int Csize = C.size();
+    for (int i = 0; i < Csize; i++)
     {
         cout << C[i] << " ";
     }
     cout << "  " << endl;
 
     cout << "c array:  " << endl;
-    for (int i = 0; i < c.size(); i++)
+    int cSize = c.size();
+    for (int i = 0; i < cSize; i++)
     {
         cout << c[i] << " ";
     }
@@ -143,7 +147,9 @@ bool checkOptimality(int &rows, int &cols, vector<float> &c)
         int negativeValueCount = 0;
 
         // Count positive values of objective function coefficients
-        for (int i = 0; i < c.size(); i++)
+        
+        int cSize = c.size();
+        for (int i = 0; i < cSize; i++)
         {
             if (c[i] <= 0)
             {
@@ -151,7 +157,7 @@ bool checkOptimality(int &rows, int &cols, vector<float> &c)
             }
         }
         // If all the coeffitients are positive now,the plan is optimal
-        if (negativeValueCount == c.size())
+        if (negativeValueCount == cSize)
         {
             isOptimal = true;
         }
@@ -163,7 +169,8 @@ bool checkOptimality(int &rows, int &cols, vector<float> &c)
 vector<Costs> findPivotColumn(vector<float> &c)
 {
     vector<Costs> positiveCosts;
-    for (int i = 0; i < c.size(); i++)
+    int cSize = c.size();
+    for (int i = 0; i < cSize; i++)
     {
         if (c[i] > 0)
         {
@@ -222,7 +229,8 @@ int findPivotRow(int &rows, int &pivotColumn, bool &isUnbounded, vector<float> &
     // find the minimum's location of the smallest item of the b array
     float minimum = 99999999;
     int location = 0;
-    for (int i = 0; i < result.size(); i++)
+    int rSize = result.size();
+    for (int i = 0; i < rSize; i++)
     {
         if (result[i] > 0)
         {
@@ -267,7 +275,8 @@ void doPivotting(int &rows, int &cols, int &pivotRow, int &pivotColumn, float &F
         }
 
         // Process the values of the B array
-        for (int j = 0; j < b.size(); j++)
+        int bSize = b.size();
+        for (int j = 0; j < bSize; j++)
         {
             auto it = find(DummiesIdxs.begin(), DummiesIdxs.end(), basicVarsIdxs[j]);
   	        if (it != DummiesIdxs.end() or j == pivotRow) { continue; }
@@ -297,7 +306,7 @@ void doPivotting(int &rows, int &cols, int &pivotRow, int &pivotColumn, float &F
     }
 
 
-int main()
+int main(int argc, const char *argv[])
 {
     vector<float> A;
     vector<float> B;
@@ -305,11 +314,11 @@ int main()
     int varsNumber = 0;
     int constraintsNumber = 0;
     
-    const char* filename = "/Users/atretyakov/Apps/simplex/src/data.bin";
+    const char* filename = argv[1];
     readData(filename, A, B, C, varsNumber, constraintsNumber);
 
     int inequalitiesNumber = constraintsNumber;
-    vector<string> inequalitiesType = {"neg", "neg", "neg", "pos", "pos", "pos"};
+    vector<string> inequalitiesType = {"neg", "neg", "pos", "pos", "pos"};
 
     int varsDummiesNumber = count(inequalitiesType.begin(), inequalitiesType.end(), "pos");
     vector<int> basicVarsIdxs;
@@ -372,7 +381,7 @@ int main()
     if ( varsDummiesNumber != 0 )
     {
         int dummIdx = DummiesIdxs[0];
-        for (int i = 0; i < inequalitiesType.size(); i++)
+        for (int i = 0; i < inequalitiesNumber; i++)
         {
             if ( inequalitiesType[i] == "neg" ) { continue; }
             for (int j = 0; j < rowNumber; j++)
@@ -427,7 +436,8 @@ int main()
     {
         // beforeF = F;
         positiveCosts = findPivotColumn(c);
-        for ( int i = 0; i < positiveCosts.size(); i++)
+        int positiveCostsSize = positiveCosts.size();
+        for ( int i = 0; i < positiveCostsSize; i++)
         {
             keyColIdx = positiveCosts[i].idx;
             cout << "keyColIdx: " << keyColIdx << endl;
@@ -469,13 +479,15 @@ int main()
     }
 
     print(rowNumber, colNumber, a, B, basicVarsIdxs, C, c, F);
-    for (int i = 0; i < basicVarsIdxs.size(); i++)
+    int basicVarsIdxsSize = basicVarsIdxs.size();
+    int vSize = vars.size();
+    for (int i = 0; i < basicVarsIdxsSize; i++)
     {
-        if (basicVarsIdxs[i] >= vars.size()) { continue; }
+        if (basicVarsIdxs[i] >= vSize) { continue; }
         else { vars[basicVarsIdxs[i]] = B[i]; }
     }
     cout << "plan is optimal. Vars are: " << endl;
-    for (int i = 0; i < vars.size(); i++)
+    for (int i = 0; i < vSize; i++)
     {
         cout << vars[i] << " ";
     }
