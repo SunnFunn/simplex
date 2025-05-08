@@ -1,0 +1,9 @@
+**/__pycache__/
+**/.vscode/
+**/.postgres_data/
+*.pkl
+*.xlsx
+*.txt
+*.csv
+*.bin
+.DS_Store
