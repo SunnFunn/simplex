@@ -1,52 +1,28 @@
-import os, time
+import os
 import struct
-from collections import namedtuple
-import schedule
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = current_dir + '/data/data.bin'
 
-
-# vars_number = 20
-# constraints_number = 9
-# inequalities_number = 9
-# inequalities_type = {"neg", "neg", "neg", "neg", "pos", "pos", "pos", "pos", "pos"}
-# demand = (5,30,40,100,40,60,30,5,20)
-# costs = (90,70,85,50,30,20,35,30,35,70,25,40,35,40,80,30,20,25,35,55)
-# constraints_coefficients = (1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,
-#                             0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,
-#                             0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,
-#                             0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,
-#                             1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,
-#                             0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,
-#                             0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,
-#                             0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1)
-vars_number = 6
-constraints_number = 5
-inequalities_number = 5
-inequalities_type = {"neg", "neg", "pos", "pos", "pos"}
-demand = (5,30,13,8,5)
-costs = (90,70,85,20,35,30)
-constraints_coefficients = (1,1,1,0,0,0,
-                            0,0,0,1,1,1,
-                            1,0,0,1,0,0,
-                            0,1,0,0,1,0,
-                            0,0,1,0,0,1)
+input_data = dict()
+input_data.update({"vars_number": 6})
+input_data.update({"constraints_number": 5})
+input_data.update({"demand": (8,25,13,8,5)})
+input_data.update({"costs": (90,20,85,60,35,30)})
+input_data.update({"constraints_coefficients": (1,1,1,0,0,0,
+                                                0,0,0,1,1,1,
+                                                1,0,0,1,0,0,
+                                                0,1,0,0,1,0,
+                                                0,0,1,0,0,1)})
 
 
-Data = namedtuple('Data', ['vars_number', 'constraints_number',
-                           'demand', 'costs', 'constraints_coefficients'])
-data = Data(vars_number, constraints_number,
-            demand, costs, constraints_coefficients)
-
-def main(data):
+def pack(data):
     # Define a structured format string with padding and alignment
-    format_string = f'ii{len(data.demand)}f{len(data.costs)}f{len(data.constraints_coefficients)}f'
+    format_string = f'ii{len(data["demand"])}f{len(data["costs"])}f{len(data["constraints_coefficients"])}f'
 
-    # Pack the data into binary format
-    packed_data = struct.pack(format_string, data.vars_number, data.constraints_number,
-                            *data.demand, *data.costs, *data.constraints_coefficients)
+    packed_data = struct.pack(format_string, data["vars_number"], data["constraints_number"],
+                            *data["demand"], *data["costs"], *data["constraints_coefficients"])
 
     with open(data_dir, 'wb') as file:
         file.write(packed_data)
@@ -58,13 +34,6 @@ def main(data):
     
     print("Unpacked data:", unpacked_data)
 
-def job():
-    print("keep running!")
-
 
 if __name__ == "__main__":
-    main(data)
-    schedule.every(600).seconds.do(job)
-    while True:
-        schedule.run_pending()
-        time.sleep(5)
+    pack(input_data)

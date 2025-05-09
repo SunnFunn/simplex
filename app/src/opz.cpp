@@ -432,7 +432,7 @@ int main(int argc, const char *argv[])
     int keyRowIdx = 0;
     vector<Costs> positiveCosts;
     // while (true)
-    while( loop != 8)
+    while( loop != 30)
     {
         // beforeF = F;
         positiveCosts = findPivotColumn(c);
@@ -472,7 +472,7 @@ int main(int argc, const char *argv[])
         // afterF = F;
         
         loop += 1;
-        print(rowNumber, colNumber, a, B, basicVarsIdxs, C, c, F);
+        // print(rowNumber, colNumber, a, B, basicVarsIdxs, C, c, F);
         
         optimCheck = checkOptimality(colNumber, rowNumber, c);
         if ( optimCheck ) { cout << "total loops: " << loop << endl; break; }

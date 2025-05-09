@@ -1,17 +1,5 @@
-FROM python:3.11
+FROM apache/airflow:3.0.0
+COPY requirements.txt /
+RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements.txt
 
-RUN apt-get -y update
-# RUN apt-get install gcc
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-RUN groupadd -r simplex && useradd -r -g simplex simplex
-RUN echo 'simplex:........' | chpasswd
-
-RUN mkdir app
-COPY ./app/ ./app/
-RUN chown -R simplex:root app
-
-USER simplex
-
-CMD ["python3", "/app/data.py"]
+COPY ./app /opt/airflow/

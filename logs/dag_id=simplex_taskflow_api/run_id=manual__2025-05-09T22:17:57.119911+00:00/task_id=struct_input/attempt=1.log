@@ -1,0 +1,4 @@
+{"timestamp":"2025-05-09T22:17:59.070815","level":"info","event":"DAG bundles loaded: dags-folder","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager"}
+{"timestamp":"2025-05-09T22:17:59.071015","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/simplex_dag.py","logger":"airflow.models.dagbag.DagBag"}
+{"timestamp":"2025-05-09T22:17:59.088747Z","level":"info","event":"Unpacked data: (6, 5, 8.0, 25.0, 13.0, 8.0, 5.0, 90.0, 20.0, 85.0, 60.0, 35.0, 30.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0)","chan":"stdout","logger":"task"}
+{"timestamp":"2025-05-09T22:17:59.081478","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.decorators.python._PythonDecoratedOperator"}

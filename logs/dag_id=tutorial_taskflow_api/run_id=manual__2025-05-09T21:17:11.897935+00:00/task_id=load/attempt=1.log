@@ -1,0 +1,4 @@
+{"timestamp":"2025-05-09T21:17:13.927275","level":"info","event":"DAG bundles loaded: dags-folder","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager"}
+{"timestamp":"2025-05-09T21:17:13.927455","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/simplex_dag.py","logger":"airflow.models.dagbag.DagBag"}
+{"timestamp":"2025-05-09T21:17:13.943857Z","level":"info","event":"Total order value is: 1236.70","chan":"stdout","logger":"task"}
+{"timestamp":"2025-05-09T21:17:13.935917","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.decorators.python._PythonDecoratedOperator"}
