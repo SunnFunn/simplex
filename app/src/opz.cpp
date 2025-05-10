@@ -18,7 +18,7 @@ struct Costs
 
 // Comparator function
 bool comp(Costs a, Costs b) {
-    return a.idx > b.idx;
+    return a.cost > b.cost;
 }
 
 void readData(const char* filename, vector<float> &A, vector<float> &B, vector<float> &C,
@@ -259,8 +259,9 @@ void doPivotting(int &rows, int &cols, int &pivotRow, int &pivotColumn, float &F
         // Process coefficients in the A array except key row
         for (int m = 0; m < rows; m++)
         {
-            auto it = find(DummiesIdxs.begin(), DummiesIdxs.end(), basicVarsIdxs[m]);
-  	        if (it != DummiesIdxs.end() or m == pivotRow) { continue; }
+            // auto it = find(DummiesIdxs.begin(), DummiesIdxs.end(), basicVarsIdxs[m]);
+  	        // if (it != DummiesIdxs.end() or m == pivotRow) { continue; }
+            if (m == pivotRow) { continue; }
             
             for (int p = 0; p < cols; p++)
             {
@@ -278,8 +279,9 @@ void doPivotting(int &rows, int &cols, int &pivotRow, int &pivotColumn, float &F
         int bSize = b.size();
         for (int j = 0; j < bSize; j++)
         {
-            auto it = find(DummiesIdxs.begin(), DummiesIdxs.end(), basicVarsIdxs[j]);
-  	        if (it != DummiesIdxs.end() or j == pivotRow) { continue; }
+            // auto it = find(DummiesIdxs.begin(), DummiesIdxs.end(), basicVarsIdxs[j]);
+  	        // if (it != DummiesIdxs.end() or j == pivotRow) { continue; }
+            if (j == pivotRow) { continue; }
 
             b[j] = oldb[j] - oldA[j][pivotColumn]* oldb[pivotRow] / pivotValue;
         }
@@ -301,7 +303,7 @@ void doPivotting(int &rows, int &cols, int &pivotRow, int &pivotColumn, float &F
         F = 0.0;
         for (int j = 0; j < rows; j++)
         {
-            F += C[basicVarsIdxs[j]]*oldb[j];      
+            F += C[basicVarsIdxs[j]]*b[j];      
         }   
     }
 
@@ -431,37 +433,37 @@ int main(int argc, const char *argv[])
     int keyColIdx = 0;
     int keyRowIdx = 0;
     vector<Costs> positiveCosts;
-    // while (true)
-    while( loop != 30)
+    while (true)
+    // while( loop != 30)
     {
         // beforeF = F;
         positiveCosts = findPivotColumn(c);
-        int positiveCostsSize = positiveCosts.size();
-        for ( int i = 0; i < positiveCostsSize; i++)
-        {
-            keyColIdx = positiveCosts[i].idx;
-            cout << "keyColIdx: " << keyColIdx << endl;
+        // int positiveCostsSize = positiveCosts.size();
+        // for ( int i = 0; i < positiveCostsSize; i++)
+        // {
+        //     keyColIdx = positiveCosts[i].idx;
+        //     cout << "keyColIdx: " << keyColIdx << endl;
             
-            // Search
-            auto it_bv = find(basicVarsIdxs.begin(), basicVarsIdxs.end(), keyColIdx); 
-            if ( it_bv != basicVarsIdxs.end() ) { continue; }
+        //     // Search
+        //     auto it_bv = find(basicVarsIdxs.begin(), basicVarsIdxs.end(), keyColIdx); 
+        //     if ( it_bv != basicVarsIdxs.end() ) { continue; }
 
-            keyRowIdx = findPivotRow(rowNumber, keyColIdx, isUnbounded, B, a);
+        //     keyRowIdx = findPivotRow(rowNumber, keyColIdx, isUnbounded, B, a);
 
-            cout << "keyRowIdx: " << keyRowIdx << endl;
+        //     cout << "keyRowIdx: " << keyRowIdx << endl;
 
-            // // Search
-            // auto it_b = find(varsIdxs.begin(), varsIdxs.end(), keyRowIdx); 
-            // if ( it_b != varsIdxs.end() ) { continue; }
+        //     // // Search
+        //     // auto it_b = find(varsIdxs.begin(), varsIdxs.end(), keyRowIdx); 
+        //     // if ( it_b != varsIdxs.end() ) { continue; }
 
-            cout << "F: " << F << " " << keyColIdx << " " << keyRowIdx << endl;
-            break;
-        }
+        //     cout << "F: " << F << " " << keyColIdx << " " << keyRowIdx << endl;
+        //     break;
+        // }
         
         
-        // keyColIdx = positiveCosts[0].idx;
-        // keyRowIdx = findPivotRow(rowNumber, keyColIdx, isUnbounded, B, a);
-        // cout << "F: " << F << " " << keyColIdx << " " << keyRowIdx << endl;
+        keyColIdx = positiveCosts[0].idx;
+        keyRowIdx = findPivotRow(rowNumber, keyColIdx, isUnbounded, B, a);
+        cout << "F: " << F << " " << keyColIdx << " " << keyRowIdx << endl;
 
         if (isUnbounded == true)
         {
@@ -472,7 +474,7 @@ int main(int argc, const char *argv[])
         // afterF = F;
         
         loop += 1;
-        // print(rowNumber, colNumber, a, B, basicVarsIdxs, C, c, F);
+        print(rowNumber, colNumber, a, B, basicVarsIdxs, C, c, F);
         
         optimCheck = checkOptimality(colNumber, rowNumber, c);
         if ( optimCheck ) { cout << "total loops: " << loop << endl; break; }

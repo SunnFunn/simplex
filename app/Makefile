@@ -1,7 +1,7 @@
 OPZ_EXEC := opz
 
-BUILD_DIR := ./build
-SRC_DIR := ./src
+BUILD_DIR := $(shell pwd)/build
+SRC_DIR := $(shell pwd)/src
 INCLUDE_PATH := -I$(shell pwd)/include
 
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
