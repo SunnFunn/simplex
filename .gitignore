@@ -6,4 +6,6 @@
 *.xlsx
 *.txt
 *.bin
+*.sh
+*.env
 .DS_Store
