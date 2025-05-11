@@ -1,25 +1,12 @@
 #include <iostream>
 #include <fstream>
-#include <cmath>
 #include <vector>
 #include <algorithm>
-// #include "/Users/atretyakov/Apps/simplex/include/data.pb.h"
+#include "datatypes.h"
+
 using namespace std;
+using namespace datatypes;
 
-#define INF 1000000.0
-#define M 99999.0
-
-
-struct Costs
-{
-    int idx;
-    int cost;
-};
-
-// Comparator function
-bool comp(Costs a, Costs b) {
-    return a.cost > b.cost;
-}
 
 void readData(const char* filename, vector<float> &A, vector<float> &B, vector<float> &C,
     int &varsNumber, int &constraintsNumber)
@@ -140,174 +127,6 @@ void print(int &rows, int &cols, vector< vector<float> > &A, vector<float> &B, v
 }
 
 
-// Check if optimal plan reached
-bool checkOptimality(int &rows, int &cols, vector<float> &c)
-    {
-        bool isOptimal = false;
-        int negativeValueCount = 0;
-
-        // Count positive values of objective function coefficients
-        
-        int cSize = c.size();
-        for (int i = 0; i < cSize; i++)
-        {
-            if (c[i] <= 0)
-            {
-                negativeValueCount++;
-            }
-        }
-        // If all the coeffitients are positive now,the plan is optimal
-        if (negativeValueCount == cSize)
-        {
-            isOptimal = true;
-        }
-        return isOptimal;
-    }
-
-
-// Find the the key column index in pivot table
-vector<Costs> findPivotColumn(vector<float> &c)
-{
-    vector<Costs> positiveCosts;
-    int cSize = c.size();
-    for (int i = 0; i < cSize; i++)
-    {
-        if (c[i] > 0)
-        {
-            // positiveCosts.push_back({i,c[i]});
-            Costs costIdx;
-            costIdx.cost = c[i];
-            costIdx.idx = i;
-            positiveCosts.push_back(costIdx);
-        }
-    }
-    // Sort struct in ascending idx order
-    sort(positiveCosts.begin(), positiveCosts.end(), comp);
-
-    return positiveCosts;
-}
-
-
-// Find the row with the pivot value.The least value item's row in the B array
-int findPivotRow(int &rows, int &pivotColumn, bool &isUnbounded, vector<float> &b, vector< vector<float> > &A)
-{
-    int INFValueCount = 0;
-    vector<float> result(rows, 0);
-
-    for (int i = 0; i < rows; i++)
-    {
-        if (A[i][pivotColumn] == 0)
-        {
-            result[i] = INF;
-            INFValueCount += 1;
-        }
-        else if (A[i][pivotColumn] < 0 && b[i] == 0)
-        {
-            result[i] = INF;
-            INFValueCount += 1;
-        }
-        else if (A[i][pivotColumn] > 0 && b[i] == 0)
-        {
-            continue;
-        }
-        else if (A[i][pivotColumn]*b[i] < 0)
-        {
-            result[i] = INF;
-            INFValueCount += 1;
-        }
-        else
-        {
-            result[i] = b[i]/A[i][pivotColumn];
-        }
-    }
-    // Checking the unbound condition if all the values are negative ones
-    if (INFValueCount == rows)
-    {
-        isUnbounded = true;
-    }
-    
-    // find the minimum's location of the smallest item of the b array
-    float minimum = 99999999;
-    int location = 0;
-    int rSize = result.size();
-    for (int i = 0; i < rSize; i++)
-    {
-        if (result[i] > 0)
-        {
-            if (result[i] < minimum)
-            {
-                minimum = result[i];
-
-                location = i;
-            }
-        }
-    }
-
-    return location;
-}
-
-
-void doPivotting(int &rows, int &cols, int &pivotRow, int &pivotColumn, float &F,
-    vector<float> &b, vector<float> &c, vector<float> &C, vector< vector<float> > &A,
-    vector<float> &vars, vector<int> &basicVarsIdxs, vector<int> &DummiesIdxs)
-    {
-        float pivotValue = A[pivotRow][pivotColumn]; // Gets the pivot value
-        vector< vector<float> > oldA = A;
-        vector<float> oldb = b;
-        vector<float> oldc = c;
-
-        // Process coefficients in the A array except key row
-        for (int m = 0; m < rows; m++)
-        {
-            // auto it = find(DummiesIdxs.begin(), DummiesIdxs.end(), basicVarsIdxs[m]);
-  	        // if (it != DummiesIdxs.end() or m == pivotRow) { continue; }
-            if (m == pivotRow) { continue; }
-            
-            for (int p = 0; p < cols; p++)
-            {
-                A[m][p] = oldA[m][p] - oldA[m][pivotColumn]*oldA[pivotRow][p] / pivotValue;
-            }
-        }
-
-        // Process key row in the new calculated A array
-        for (int i = 0; i < cols; i++)
-        {
-            A[pivotRow][i] = oldA[pivotRow][i] / pivotValue;
-        }
-
-        // Process the values of the B array
-        int bSize = b.size();
-        for (int j = 0; j < bSize; j++)
-        {
-            // auto it = find(DummiesIdxs.begin(), DummiesIdxs.end(), basicVarsIdxs[j]);
-  	        // if (it != DummiesIdxs.end() or j == pivotRow) { continue; }
-            if (j == pivotRow) { continue; }
-
-            b[j] = oldb[j] - oldA[j][pivotColumn]* oldb[pivotRow] / pivotValue;
-        }
-        b[pivotRow] = oldb[pivotRow] / pivotValue;
-
-        // exchange one of the basis variables index
-        basicVarsIdxs[pivotRow] = pivotColumn;
-
-        // Process the c array
-        for (int i = 0; i < cols; i++)
-        { 
-            float delta = -C[i];
-            for (int j = 0; j < rows; j++)
-            {
-                delta += C[basicVarsIdxs[j]]*oldA[j][i];
-            }
-            c[i] = delta;
-        }
-        F = 0.0;
-        for (int j = 0; j < rows; j++)
-        {
-            F += C[basicVarsIdxs[j]]*b[j];      
-        }   
-    }
-
-
 int main(int argc, const char *argv[])
 {
     vector<float> A;
@@ -320,7 +139,7 @@ int main(int argc, const char *argv[])
     readData(filename, A, B, C, varsNumber, constraintsNumber);
 
     int inequalitiesNumber = constraintsNumber;
-    vector<string> inequalitiesType = {"neg", "neg", "pos", "pos", "pos"};
+    vector<string> inequalitiesType = {"neg", "neg", "neg", "pos", "pos", "pos", "pos"};
 
     int varsDummiesNumber = count(inequalitiesType.begin(), inequalitiesType.end(), "pos");
     vector<int> basicVarsIdxs;
@@ -399,13 +218,12 @@ int main(int argc, const char *argv[])
         }
     }
     
-    
     // construct C vector
     //------------------------------------------------------------------------------------
     for (int i = 0; i < colNumber; i++)
     {
         if (i >= varsNumber && i < varsNumber + inequalitiesNumber) { C.push_back(0); }
-        else if (i >= varsNumber + inequalitiesNumber) { C.push_back(M); }
+        else if (i >= varsNumber + inequalitiesNumber) { C.push_back(Simplex::M); }
     }
 
     // initiate target and c vector
@@ -433,36 +251,24 @@ int main(int argc, const char *argv[])
     int keyColIdx = 0;
     int keyRowIdx = 0;
     vector<Costs> positiveCosts;
+
+    Simplex simplex;
+    for (int j = 0; j < rowNumber; j++) { simplex.seta().push_back(a[j]); }
+    for (int i = 0; i < rowNumber; i++) { simplex.setb().push_back(B[i]); }
+    for (int i = 0; i < colNumber; i++) { simplex.setc().push_back(c[i]); }
+    simplex.setTotalCosts() = F;
+
+    vector< vector<float> > ref_a;
+    vector<float> ref_b;
+    vector<float> ref_c;
+    float ref_totalCosts;
+    
     while (true)
     // while( loop != 30)
-    {
-        // beforeF = F;
-        positiveCosts = findPivotColumn(c);
-        // int positiveCostsSize = positiveCosts.size();
-        // for ( int i = 0; i < positiveCostsSize; i++)
-        // {
-        //     keyColIdx = positiveCosts[i].idx;
-        //     cout << "keyColIdx: " << keyColIdx << endl;
-            
-        //     // Search
-        //     auto it_bv = find(basicVarsIdxs.begin(), basicVarsIdxs.end(), keyColIdx); 
-        //     if ( it_bv != basicVarsIdxs.end() ) { continue; }
-
-        //     keyRowIdx = findPivotRow(rowNumber, keyColIdx, isUnbounded, B, a);
-
-        //     cout << "keyRowIdx: " << keyRowIdx << endl;
-
-        //     // // Search
-        //     // auto it_b = find(varsIdxs.begin(), varsIdxs.end(), keyRowIdx); 
-        //     // if ( it_b != varsIdxs.end() ) { continue; }
-
-        //     cout << "F: " << F << " " << keyColIdx << " " << keyRowIdx << endl;
-        //     break;
-        // }
-        
-        
+    {   
+        positiveCosts = simplex.findPivotColumn();
         keyColIdx = positiveCosts[0].idx;
-        keyRowIdx = findPivotRow(rowNumber, keyColIdx, isUnbounded, B, a);
+        keyRowIdx = simplex.findPivotRow(keyColIdx, isUnbounded);
         cout << "F: " << F << " " << keyColIdx << " " << keyRowIdx << endl;
 
         if (isUnbounded == true)
@@ -470,24 +276,33 @@ int main(int argc, const char *argv[])
             cout << "Error unbounded" << endl;
             break;
         }
-        doPivotting(rowNumber, colNumber, keyRowIdx, keyColIdx, F, B, c, C, a, vars, basicVarsIdxs, DummiesIdxs);
-        // afterF = F;
+        simplex.doPivotting(keyRowIdx, keyColIdx, vars, basicVarsIdxs, DummiesIdxs, C);
         
         loop += 1;
-        print(rowNumber, colNumber, a, B, basicVarsIdxs, C, c, F);
+        ref_a = simplex.geta();
+        ref_b = simplex.getb();
+        ref_c = simplex.getc();
+        ref_totalCosts = simplex.getTotalCosts();
+        print(rowNumber, colNumber, ref_a, ref_b, basicVarsIdxs, C, ref_c, ref_totalCosts);
         
-        optimCheck = checkOptimality(colNumber, rowNumber, c);
+        optimCheck = simplex.checkOptimality();
         if ( optimCheck ) { cout << "total loops: " << loop << endl; break; }
     }
 
-    print(rowNumber, colNumber, a, B, basicVarsIdxs, C, c, F);
+    ref_a = simplex.geta();
+    ref_b = simplex.getb();
+    ref_c = simplex.getc();
+    ref_totalCosts = simplex.getTotalCosts();
+    print(rowNumber, colNumber, ref_a, ref_b, basicVarsIdxs, C, ref_c, ref_totalCosts);
+    
     int basicVarsIdxsSize = basicVarsIdxs.size();
     int vSize = vars.size();
     for (int i = 0; i < basicVarsIdxsSize; i++)
     {
         if (basicVarsIdxs[i] >= vSize) { continue; }
-        else { vars[basicVarsIdxs[i]] = B[i]; }
+        else { vars[basicVarsIdxs[i]] = ref_b[i]; }
     }
+    
     cout << "plan is optimal. Vars are: " << endl;
     for (int i = 0; i < vSize; i++)
     {

@@ -6,15 +6,17 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 data_dir = current_dir + '/data/data.bin'
 
 input_data = dict()
-input_data.update({"vars_number": 6})
-input_data.update({"constraints_number": 5})
-input_data.update({"demand": (8,25,13,8,5)})
-input_data.update({"costs": (90,20,85,60,35,30)})
-input_data.update({"constraints_coefficients": (1,1,1,0,0,0,
-                                                0,0,0,1,1,1,
-                                                1,0,0,1,0,0,
-                                                0,1,0,0,1,0,
-                                                0,0,1,0,0,1)})
+input_data.update({"vars_number": 12})
+input_data.update({"constraints_number": 7})
+input_data.update({"demand": (160,30,90,100,40,80,60)})
+input_data.update({"costs": (4,8,10,5,4,6,2,3,4,4,6,5)})
+input_data.update({"constraints_coefficients": (1,1,1,1,0,0,0,0,0,0,0,0,
+                                                0,0,0,0,1,1,1,1,0,0,0,0,
+                                                0,0,0,0,0,0,0,0,1,1,1,1,
+                                                1,0,0,0,1,0,0,0,1,0,0,0,
+                                                0,1,0,0,0,1,0,0,0,1,0,0,
+                                                0,0,1,0,0,0,1,0,0,0,1,0,
+                                                0,0,0,1,0,0,0,1,0,0,0,1)})
 
 
 def pack(data):
