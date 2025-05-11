@@ -11,6 +11,8 @@ namespace datatypes
         int cost;
     } Costs;
 
+    // bool comp(Costs, Costs);
+
     // declare data type of main Transportation 2D Matrix
     class Simplex
     {

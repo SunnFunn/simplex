@@ -1,81 +1,13 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <algorithm>
 #include "datatypes.h"
+#include "redis.h"
 
 using namespace std;
 using namespace datatypes;
-
-
-void readData(const char* filename, vector<float> &A, vector<float> &B, vector<float> &C,
-    int &varsNumber, int &constraintsNumber)
-{
-    ifstream inputFile(filename, std::ios::binary);
-    if (inputFile.is_open())
-    {
-        // get length of file:
-        inputFile.seekg (0, inputFile.end);
-        int length = inputFile.tellg();
-        inputFile.seekg (0, inputFile.beg);
-        cout << length/sizeof(float) << endl;
-
-        // get LP problem metadata:
-        int meta;
-        vector<int> metas;
-        int loops = 2;
-        while (loops != 0)
-        {
-            inputFile.read(reinterpret_cast<char*>(&meta), sizeof(int));
-            metas.push_back(meta);
-            loops--;
-        }
-
-        varsNumber = metas[0];
-        constraintsNumber = metas[1];
-
-        inputFile.seekg (sizeof(int)*2, inputFile.beg);
-        float demand;
-        loops = constraintsNumber;
-        while (loops != 0)
-        {
-            inputFile.read(reinterpret_cast<char*>(&demand), sizeof(float));
-            B.push_back(demand);
-            loops--;
-        }
-
-        inputFile.seekg (sizeof(int)*2 + sizeof(float)*constraintsNumber, inputFile.beg);
-        float cost;
-        loops = varsNumber;
-        while (loops != 0)
-        {
-            inputFile.read(reinterpret_cast<char*>(&cost), sizeof(float));
-            C.push_back(cost);
-            loops--;
-        }
-
-        inputFile.seekg (sizeof(int)*2 + sizeof(float)*constraintsNumber + + sizeof(float)*varsNumber, inputFile.beg);
-        float coef;
-        loops = varsNumber*constraintsNumber;
-        while (loops != 0)
-        {
-            inputFile.read(reinterpret_cast<char*>(&coef), sizeof(float));
-            A.push_back(coef);
-            loops--;
-        }
-        
-        inputFile.close();
-        
-        int bSize = B.size(); 
-        for(int i = 0; i < bSize; i++)
-        {
-            cout << " " << B[i];
-        }
-        cout << endl;
-    } else {
-        std::cerr << "Unable to open file for reading." << std::endl;
-    }
-}
 
 // Print the problem data
 void print(int &rows, int &cols, vector< vector<float> > &A, vector<float> &B, vector<int> &basicVarsIdxs,
@@ -129,49 +61,100 @@ void print(int &rows, int &cols, vector< vector<float> > &A, vector<float> &B, v
 
 int main(int argc, const char *argv[])
 {
-    vector<float> A;
+    Redis *r = new Redis();
+    string host = argv[1];
+    int port = stoi(argv[2]);
+    string pass = argv[3];
+
+    if(!r->connect(host, port))
+    {
+        return 0;
+    }
+
+    string supply_str = r->get("supply_str", pass).c_str();
+    string demand_str = r->get("demand_str", pass).c_str();
+    string costs_str = r->get("costs_str", pass).c_str();
+
+    int sNodesNumber = 0;
+    int dNodesNumber = 0;
+
+    char del = ',';
+
+    // suply and demand nodes
     vector<float> B;
+    stringstream supply(supply_str);
+    string s_line;
+    while (getline(supply, s_line, del))
+    {
+        float Sqty = stof(s_line);
+        B.push_back(Sqty);
+        sNodesNumber++;
+    }
+    stringstream demand(demand_str);
+    string d_line;
+    while (getline(demand, d_line, del))
+    {
+        float Dqty = stof(d_line);
+        B.push_back(Dqty);
+        dNodesNumber++;
+    }
+
+    // costs nodes
     vector<float> C;
-    int varsNumber = 0;
-    int constraintsNumber = 0;
+    stringstream costs(costs_str);
+    string c_line;
+    while (getline(costs, c_line, del))
+    {
+        float cost = stof(c_line);
+        C.push_back(cost);
+    }
     
-    const char* filename = argv[1];
-    readData(filename, A, B, C, varsNumber, constraintsNumber);
+    int varsNumber = sNodesNumber*dNodesNumber;
+    int constraintsNumber = sNodesNumber + dNodesNumber;
 
-    int inequalitiesNumber = constraintsNumber;
-    vector<string> inequalitiesType = {"neg", "neg", "neg", "pos", "pos", "pos", "pos"};
-
-    int varsDummiesNumber = count(inequalitiesType.begin(), inequalitiesType.end(), "pos");
-    vector<int> basicVarsIdxs;
-    vector<int> DummiesIdxs;
-
-    int colNumber = varsNumber + inequalitiesNumber + varsDummiesNumber;
+    int varsDummiesNumber = dNodesNumber;
+    int colNumber = varsNumber + constraintsNumber + varsDummiesNumber;
     int rowNumber = B.size();
     
+    vector<int> basicVarsIdxs;
+    vector<int> DummiesIdxs;
     vector<float> vars(varsNumber, 0);
     vector<float> varsIdxs;
+
     for (int i = 0; i < varsNumber; i++)
     {
         varsIdxs.push_back(i);
     }
+
+    for (int i = varsNumber + constraintsNumber; i < colNumber; i++)
+    {
+        DummiesIdxs.push_back(i);
+    }
+
     vector< vector<float> > a(rowNumber, vector<float>(colNumber, 0.0));
     vector<float> c;
     float F = 0.0;
     bool isUnbounded = false;
 
-    for (int i = varsNumber + inequalitiesNumber; i < colNumber; i++)
-    {
-        DummiesIdxs.push_back(i);
-    }
 
     // initiate first iteration of a matrix
-    //--------------------------------------------------------------------
     // fill matrix with constaints coefficients
+    //------------------------------------------------------------------------------------
     for (int j = 0; j < rowNumber; j++)
     {
-        for (int i = 0; i < varsNumber; i++)
+        if (j < sNodesNumber )
         {
-            a[j][i] = A[i + varsNumber*j];   
+            for (int k = 0; k < dNodesNumber; k++)
+            {
+                a[j][k + j*4] = 1;
+            }
+        }
+        else
+        {
+            for (int l = 0; l < dNodesNumber; l++)
+            {
+                a[j][l*4 + j - sNodesNumber] = 1;
+            }
         }
     }
 
@@ -179,17 +162,17 @@ int main(int argc, const char *argv[])
     //------------------------------------------------------------------------------------
     for (int j = 0; j < rowNumber; j++)
     {
-        if (inequalitiesType[j] == "pos")
+        if (j >= sNodesNumber)
         {
-            for (int i = 0; i < inequalitiesNumber; i++)
+            for (int i = 0; i < constraintsNumber; i++)
             {
                 if ( i == j ) { a[j][i + varsNumber] = -1; }
                 else { a[j][i + varsNumber] = 0; }
             }
         }
-        else if (inequalitiesType[j] == "neg")
+        else if (j < sNodesNumber)
         {
-            for (int i = 0; i < inequalitiesNumber; i++)
+            for (int i = 0; i < constraintsNumber; i++)
             {
                 if ( i == j ) { a[j][i + varsNumber] = 1; basicVarsIdxs.push_back(i + varsNumber); }
                 else { a[j][i + varsNumber] = 0; }
@@ -202,9 +185,9 @@ int main(int argc, const char *argv[])
     if ( varsDummiesNumber != 0 )
     {
         int dummIdx = DummiesIdxs[0];
-        for (int i = 0; i < inequalitiesNumber; i++)
+        for (int i = 0; i < constraintsNumber; i++)
         {
-            if ( inequalitiesType[i] == "neg" ) { continue; }
+            if ( i < sNodesNumber ) { continue; }
             for (int j = 0; j < rowNumber; j++)
             {
                 if ( a[j][varsNumber + i] == 0 ) { a[j][dummIdx] = 0; }
@@ -217,13 +200,14 @@ int main(int argc, const char *argv[])
             dummIdx += 1;
         }
     }
+
     
     // construct C vector
     //------------------------------------------------------------------------------------
     for (int i = 0; i < colNumber; i++)
     {
-        if (i >= varsNumber && i < varsNumber + inequalitiesNumber) { C.push_back(0); }
-        else if (i >= varsNumber + inequalitiesNumber) { C.push_back(Simplex::M); }
+        if (i >= varsNumber && i < varsNumber + constraintsNumber) { C.push_back(0); }
+        else if (i >= varsNumber + constraintsNumber) { C.push_back(Simplex::M); }
     }
 
     // initiate target and c vector

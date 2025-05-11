@@ -10,10 +10,16 @@ sys.path.append(parent)
 from app import data
 
 
+host = "0.0.0.0"
+port=6380
+db=0
+password="alext"
+extime=1200
+
 from airflow.sdk import dag, task
 @dag(
     schedule=None,
-    start_date=pendulum.datetime(2025, 5, 10, tz="UTC"),
+    start_date=pendulum.datetime(2025, 5, 11, tz="UTC"),
     catchup=False,
     tags=["example"],
 )
@@ -31,29 +37,20 @@ def simplex_taskflow_api():
     
     @task()
     def retrive_raw_data():
-        input_data = dict()
-        input_data.update({"vars_number": 6})
-        input_data.update({"constraints_number": 5})
-        input_data.update({"demand": (19,15,12,11,15)})
-        input_data.update({"costs": (50,40,25,60,35,30)})
-        input_data.update({"constraints_coefficients": (1,1,1,0,0,0,
-                                                        0,0,0,1,1,1,
-                                                        1,0,0,1,0,0,
-                                                        0,1,0,0,1,0,
-                                                        0,0,1,0,0,1)})
-        # inequalities_number = 5
-        # inequalities_type = {"neg", "neg", "pos", "pos", "pos"}
-        return input_data
+        data_dict = {"supply": (160,30,90),
+                    "demand": (100,40,80,60),
+                    "costs": (4,8,10,5,4,6,2,3,4,4,6,5)}
+        return data_dict
     
     @task()
-    def struct_input(input_data):
-        data.pack(input_data)
+    def load_data(data_dict):
+        data.data_to_db(data=data, host=host, port=port, db=db, password=password, extime=extime)
         return True
     
     @task()
     def optimize(data_status):
         if data_status:
-            args = [parent + '/app/build/opz', parent + '/app/data/data.bin']
+            args = [parent + '/app/build/opz', host, port, password]
             result = sp.run(args, capture_output=True, text=True)
             if not result.stderr:
                 return result.stdout
@@ -64,7 +61,7 @@ def simplex_taskflow_api():
     
     build()
     input_data = retrive_raw_data()
-    data_status = struct_input(input_data)
+    data_status = load_data(input_data)
     optimize(data_status=data_status)
 
 simplex_taskflow_api()
