@@ -32,16 +32,16 @@ touch .env
 echo "AIRFLOW_UID=501
 USERNAME=$(whoami)
 PASSWORD=$pass
-DBNAME=simplex" >> .env
+DBNAME=simplex" > .env
 
 docker compose up airflow-init
-# exCode=$?
-# echo $exCode
-# if [ $exCode -ne 0 ];
-# then
-#     echo "Airflow init failed!"
-# fi
+exCode=$?
+echo $exCode
+if [ $exCode -ne 0 ];
+then
+    echo "Airflow init failed!"
+fi
 
-# docker compose up
+docker compose up
 
-# rm .env
+rm .env

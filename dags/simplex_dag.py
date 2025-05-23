@@ -19,17 +19,17 @@ extime=1200
 from airflow.sdk import dag, task
 @dag(
     schedule=None,
-    start_date=pendulum.datetime(2025, 5, 11, tz="UTC"),
+    start_date=pendulum.datetime(2025, 5, 13, tz="UTC"),
     catchup=False,
     tags=["example"],
 )
 def simplex_taskflow_api():
     @task()
     def build():
-        args1 = ['rm', f'{parent}/app/build/opz']
-        args2 = ['make', '-C', f'{parent}/app/']
-        sp.run(args1, text=True)
-        result = sp.run(args2, capture_output=True, text=True)
+        # args1 = ['rm', f'{parent}/app/build/opz']
+        args = ['make', '-C', f'{parent}/app/']
+        # sp.run(args, text=True)
+        result = sp.run(args, capture_output=True, text=True)
         if not result.stderr:
             return result.stdout
         else:

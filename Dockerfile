@@ -6,9 +6,10 @@ USER root
 
 RUN apt-get update -y && apt-get install -y build-essential && apt-get install -y make
 
-COPY libhiredis.so /usr/local/lib
+COPY ./hred/lib/libhiredis.so /usr/local/lib
 RUN  mkdir /usr/local/include/hiredis
-COPY hiredis.h /usr/local/include/hiredis
+# COPY hiredis.h /usr/local/include/hiredis
+COPY ./hred/include/hiredis/ /usr/local/include/hiredis/
 RUN echo '/usr/local/lib' >>/etc/ld.so.conf
 RUN ldconfig
 

@@ -138,7 +138,7 @@ int main(int argc, const char *argv[])
 
 
     // initiate first iteration of a matrix
-    // fill matrix with constaints coefficients
+    // fill matrix with constraints coefficients
     //------------------------------------------------------------------------------------
     for (int j = 0; j < rowNumber; j++)
     {
@@ -146,14 +146,14 @@ int main(int argc, const char *argv[])
         {
             for (int k = 0; k < dNodesNumber; k++)
             {
-                a[j][k + j*4] = 1;
+                a[j][k + j*dNodesNumber] = 1;
             }
         }
         else
         {
             for (int l = 0; l < dNodesNumber; l++)
             {
-                a[j][l*4 + j - sNodesNumber] = 1;
+                a[j][l*dNodesNumber + j - sNodesNumber] = 1;
             }
         }
     }
@@ -294,5 +294,6 @@ int main(int argc, const char *argv[])
     }
     cout << endl;
 
+    delete r;
     return 0;
 }
